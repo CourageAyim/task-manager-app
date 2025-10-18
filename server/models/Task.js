@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 
 const TaskSchema = new mongoose.Schema({
@@ -26,6 +25,17 @@ const TaskSchema = new mongoose.Schema({
         type: Date,
         default: null,
     },
+    
+    timeSpent: {
+        type: Number,
+        default: 0, 
+    },
+    recurrence: {
+        type: String,
+        enum: ['none', 'daily', 'weekly', 'monthly', 'yearly'],
+        default: 'none', 
+    },
+    
 }, { 
     timestamps: true 
 });
