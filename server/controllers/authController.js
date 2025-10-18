@@ -48,6 +48,11 @@ exports.registerUser = asyncHandler(async (req, res) => {
 exports.loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+        res.status(400);
+        throw new Error('Please provide both email and password.');
+    }
+
     const user = await User.findOne({ email }).select('+password');
 
     if (user && (await bcrypt.compare(password, user.password))) {
