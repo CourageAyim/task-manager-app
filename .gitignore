@@ -1,0 +1,15 @@
+.env
+.env.*
+
+node_modules
+/server/node_modules
+/client/node_modules
+/dist
+/build
+npm-debug.log
+
+.vscode/
+
+.DS_Store
+
+*~
