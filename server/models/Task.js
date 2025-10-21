@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const TaskSchema = new mongoose.Schema({
     ownerId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'User', 
         required: [true, 'Task must belong to a user'],
     },
     title: {
@@ -25,7 +25,6 @@ const TaskSchema = new mongoose.Schema({
         type: Date,
         default: null,
     },
-    
     timeSpent: {
         type: Number,
         default: 0, 
@@ -39,6 +38,8 @@ const TaskSchema = new mongoose.Schema({
 }, { 
     timestamps: true 
 });
+
+TaskSchema.index({ title: 1, ownerId: 1 }, { unique: true });
 
 const Task = mongoose.model('Task', TaskSchema);
 module.exports = Task;
