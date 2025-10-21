@@ -1,4 +1,3 @@
-
 const asyncHandler = require('express-async-handler');
 const Task = require('../models/Task');
 const User = require('../models/User'); 
@@ -20,8 +19,6 @@ const getTasks = asyncHandler(async (req, res) => {
 
     res.status(200).json(tasks);
 });
-
-
 
 const createTask = asyncHandler(async (req, res) => {
     const { title, description, status, dueDate, recurrence } = req.body;
@@ -55,7 +52,52 @@ const createTask = asyncHandler(async (req, res) => {
 });
 
 
+const updateTask = asyncHandler(async (req, res) => {
+    const task = await Task.findById(req.params.id);
+
+    if (!task) {
+        res.status(404);
+        throw new Error('Task not found');
+    }
+
+    if (task.ownerId.toString() !== req.user.id) {
+        res.status(403); 
+        throw new Error('User not authorized to update this task');
+    }
+    
+    const updatedTask = await Task.findByIdAndUpdate(
+        req.params.id, 
+        req.body, 
+        { new: true, runValidators: true } 
+    );
+
+    res.status(200).json(updatedTask);
+});
+
+
+const deleteTask = asyncHandler(async (req, res) => {
+    const task = await Task.findById(req.params.id);
+
+    if (!task) {
+        res.status(404);
+        throw new Error('Task not found');
+    }
+
+    
+    if (task.ownerId.toString() !== req.user.id) {
+        res.status(403); 
+        throw new Error('User not authorized to delete this task');
+    }
+    
+    await task.deleteOne(); 
+
+    res.status(200).json({ id: req.params.id, message: 'Task removed' });
+});
+
+
 module.exports = {
     getTasks,
     createTask,
+    updateTask, 
+    deleteTask, 
 };
