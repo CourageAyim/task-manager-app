@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 // import RegisterView from '../views/RegisterView.vue'
-// import DashboardView from '../views/DashboardView.vue'
+import DashboardView from '../views/DashboardView.vue'
 
 const routes = [
   {
@@ -18,12 +18,12 @@ const routes = [
 //     name: 'Register',
 //     component: RegisterView
 //   },
-//   {
-//     path: '/dashboard',
-//     name: 'Dashboard',
-//     component: DashboardView,
-//     // Future step: meta: { requiresAuth: true }
-//   }
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: DashboardView,
+    // Future step: meta: { requiresAuth: true }
+  }
 ]
 
 const router = createRouter({

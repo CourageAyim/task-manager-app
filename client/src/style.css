@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom global styles */
 * {
   margin: 0;
   padding: 0;
