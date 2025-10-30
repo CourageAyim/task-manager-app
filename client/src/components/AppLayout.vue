@@ -96,6 +96,8 @@ const toggleDark = () => {
   isDark.value = !isDark.value;
   document.documentElement.classList.toggle('dark');
   localStorage.setItem('theme', isDark.value ? 'dark' : 'light');
+  // Trigger a custom event to notify other components
+  window.dispatchEvent(new CustomEvent('theme-changed', { detail: { isDark: isDark.value } }));
 };
 
 onMounted(() => {
