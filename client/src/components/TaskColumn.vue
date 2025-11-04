@@ -11,7 +11,8 @@
         </h3>
         <span class="px-2.5 py-1 rounded-full text-xs font-bold transition-colors duration-300" 
               :class="statusClasses">
-          {{ mockTasks.length }} </span>
+          {{ tasks.length }}
+        </span>
       </div>
       
       <button @click="addTask" 
@@ -24,12 +25,15 @@
     <div class="flex-grow overflow-y-auto space-y-4">
       
       <TaskItem 
-        v-for="task in mockTasks" 
+        v-for="task in tasks" 
         :key="task.id" 
         :task="task" 
+        @view="handleTaskAction('view', $event)" 
+        @update="handleTaskAction('update', $event)" 
+        @delete="handleTaskAction('delete', $event)" 
       />
       
-      <p v-if="mockTasks.length === 0" class="text-center py-8 text-sm"
+      <p v-if="tasks.length === 0" class="text-center py-8 text-sm"
          :class="[isDark ? 'text-text-dark-tertiary' : 'text-text-light-tertiary']">
         No tasks in this column. Click + to add one.
       </p>
@@ -39,13 +43,18 @@
 
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'; 
-import TaskItem from './TaskItem.vue'; 
+import TaskItem from './TaskItem.vue';
+
 const props = defineProps({
   title: { type: String, required: true },
   status: { type: String, required: true },
-  taskCount: { type: Number, default: 0 },
+  tasks: { type: Array, default: () => [] },
 });
 
+// Update emitted events
+const emit = defineEmits(['create', 'view', 'update', 'delete']); 
+
+// --- THEME STATE LOGIC (Retained) ---
 const isDark = ref(document.documentElement.classList.contains('dark'));
 let themeObserver = null;
 
@@ -82,33 +91,9 @@ onMounted(() => {
     }
   });
 });
+// -------------------------------------------------
 
-const mockTasks = computed(() => {
-  if (props.status === 'to-do') {
-    return [
-      {
-        id: 1,
-        title: 'Complete Kanban Board Structure (Task 2.2.3)',
-        description: 'Finalize the TaskItem card, ensuring all required fields are displayed and colors are correctly applied.',
-        dueDate: new Date(Date.now() + 86400000).toISOString(), 
-        timeSpent: 45,
-        recurrence: 'none',
-        status: props.status
-      },
-      {
-        id: 2,
-        title: 'Review and Commit New Color Palette',
-        description: 'Verify all AppLayout and DashboardView components use the new semantic Tailwind classes for perfect contrast in both light and dark modes.',
-        dueDate: new Date(Date.now() + 172800000).toISOString(),
-        timeSpent: 120,
-        recurrence: 'weekly',
-        status: props.status
-      },
-    ];
-  }
-  return []; 
-});
-
+// Status badge for column header (Unchanged)
 const statusClasses = computed(() => {
   switch (props.status) {
     case 'to-do':
@@ -127,7 +112,10 @@ const statusClasses = computed(() => {
 });
 
 const addTask = () => {
-  console.log(`Add task button clicked for column: ${props.title}`);
+  emit('create', props.status);
 };
 
+const handleTaskAction = (action, task) => {
+  emit(action, task);
+};
 </script>

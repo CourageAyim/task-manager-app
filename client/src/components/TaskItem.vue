@@ -1,54 +1,62 @@
 <template>
-  <div class="p-4 rounded-xl shadow-lg cursor-pointer transition-all duration-300 transform hover:scale-[1.01]"
+  <div class="p-4 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.01]"
        :class="[isDark 
                 ? 'bg-bg-dark-base border border-border-dark hover:shadow-accent-primary/20' 
-                : 'bg-bg-light-elevated border border-border-light hover:shadow-accent-dark-primary/20']"
-       @click="editTask">
+                : 'bg-bg-light-elevated border border-border-light hover:shadow-accent-dark-primary/20']">
     
-    <header class="flex justify-between items-start mb-2">
-      <h4 class="font-bold text-base line-clamp-2" 
+    <header class="flex justify-between items-center">
+      <h4 class="font-bold text-base line-clamp-2 pr-4" 
           :class="[isDark ? 'text-text-dark-primary' : 'text-text-light-primary']">
         {{ task.title }}
       </h4>
-      <button class="flex-shrink-0 p-1 rounded-full ml-2 transition-colors duration-200"
-              :class="[isDark ? 'text-text-dark-secondary hover:bg-bg-dark-elevated' : 'text-text-light-secondary hover:bg-bg-light-hover']">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
-      </button>
+      
+      <div class="relative flex-shrink-0">
+        <button @click.stop="toggleMenu"
+                class="p-1 rounded-full ml-2 transition-colors duration-200"
+                :class="[isDark ? 'text-text-dark-secondary hover:bg-bg-dark-elevated' : 'text-text-light-secondary hover:bg-bg-light-hover']">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
+        </button>
+        
+        <transition name="dropdown-fade">
+          <div v-if="isMenuOpen"
+               @click.stop
+               class="absolute right-0 mt-2 w-40 rounded-lg shadow-xl py-1 z-20 origin-top-right ring-1 ring-opacity-5 transition-colors duration-300"
+               :class="[isDark ? 'bg-bg-dark-elevated ring-border-dark' : 'bg-white ring-border-light']">
+            
+            <a href="#" @click.prevent="emitAction('view')"
+               class="block px-4 py-2 text-sm font-medium transition-colors duration-150"
+               :class="[isDark ? 'text-text-dark-secondary hover:bg-bg-dark-base hover:text-text-dark-primary' : 'text-text-light-secondary hover:bg-bg-light-hover hover:text-text-light-primary']">
+              View Details ({{ task.subtasks ? task.subtasks.length : 0 }})
+            </a>
+            
+            <a href="#" @click.prevent="emitAction('update')"
+               class="block px-4 py-2 text-sm font-medium transition-colors duration-150"
+               :class="[isDark ? 'text-text-dark-secondary hover:bg-bg-dark-base hover:text-text-dark-primary' : 'text-text-light-secondary hover:bg-bg-light-hover hover:text-text-light-primary']">
+              Update Task
+            </a>
+
+            <a href="#" @click.prevent="emitAction('delete')"
+               class="block px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-150"
+               :class="[isDark ? 'hover:bg-bg-dark-base' : '']">
+              Delete Task
+            </a>
+          </div>
+        </transition>
+      </div>
     </header>
     
-    <p v-if="task.description" 
-       class="text-xs mt-1 line-clamp-3" 
-       :class="[isDark ? 'text-text-dark-tertiary' : 'text-text-light-secondary']">
-      {{ task.description }}
-    </p>
-
-    <div class="mt-3 pt-3 border-t"
-         :class="[isDark ? 'border-bg-dark-elevated' : 'border-bg-light-hover']">
-      
-      <div class="flex items-center text-xs font-medium"
-           :class="[isDark ? 'text-text-dark-secondary' : 'text-text-light-secondary']">
-        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-        <span>Due: {{ formatDate(task.dueDate) }}</span>
-      </div>
-
-      <div v-if="task.timeSpent > 0" class="flex items-center text-xs mt-1"
-           :class="[isDark ? 'text-text-dark-tertiary' : 'text-text-light-tertiary']">
-        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        <span>Time Spent: {{ formatTime(task.timeSpent) }}</span>
-      </div>
-      
-      <div v-if="task.recurrence !== 'none'" class="flex items-center text-xs mt-1"
-           :class="[isDark ? 'text-accent-primary' : 'text-accent-dark-primary']">
-        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356-2A8.001 8.001 0 004.582 19m9.626 0H9.582m7.962-4l-3-3m0 0l-3 3"></path></svg>
-        <span class="font-medium">Repeats: {{ task.recurrence }}</span>
-      </div>
-
+    <div v-if="task.subtasks && task.subtasks.length > 0" class="mt-2 text-xs font-medium"
+         :class="[isDark ? 'text-accent-primary' : 'text-accent-dark-primary']">
+      {{ task.subtasks.filter(s => s.status === 'done').length }}/{{ task.subtasks.length }} Subtasks
     </div>
+    
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+
+const emit = defineEmits(['view', 'update', 'delete']);
 
 const props = defineProps({
   task: {
@@ -60,19 +68,51 @@ const props = defineProps({
       dueDate: new Date(),
       timeSpent: 0, 
       recurrence: 'none', 
-      status: 'to-do'
+      status: 'to-do',
+      subtasks: [] 
     })
   }
 });
 
+const isMenuOpen = ref(false);
+
+const toggleMenu = () => {
+  isMenuOpen.value = !isMenuOpen.value;
+};
+
+const emitAction = (action) => {
+  isMenuOpen.value = false; 
+  emit(action, props.task);
+};
+
+const handleClickOutside = (event) => {
+  if (isMenuOpen.value && !event.target.closest('.relative')) {
+    isMenuOpen.value = false;
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside);
+});
+
 const isDark = ref(document.documentElement.classList.contains('dark'));
 let themeObserver = null;
+
 const checkTheme = () => {
   isDark.value = document.documentElement.classList.contains('dark');
 };
 
+const handleThemeChange = (event) => {
+  isDark.value = event.detail.isDark;
+};
+
 onMounted(() => {
   checkTheme();
+  window.addEventListener('theme-changed', handleThemeChange);
   themeObserver = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.attributeName === 'class') {
@@ -84,29 +124,22 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener('theme-changed', handleThemeChange);
   if (themeObserver) {
     themeObserver.disconnect();
   }
 });
-
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-};
-
-const formatTime = (minutes) => {
-  if (minutes === 0) return '0m';
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  let timeString = '';
-  if (h > 0) timeString += `${h}h `;
-  if (m > 0) timeString += `${m}m`;
-  return timeString.trim();
-};
-
-const editTask = () => {
-  console.log(`Open edit modal for task: ${props.task.title}`);
-};
-
-import { onBeforeUnmount } from 'vue';
 </script>
+
+<style scoped>
+.dropdown-fade-enter-active,
+.dropdown-fade-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.dropdown-fade-enter-from,
+.dropdown-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+</style>
