@@ -1,121 +1,95 @@
 <template>
-  <div class="flex flex-col rounded-xl p-5 shadow-lg transition-all duration-300 h-full"
-       :class="[isDark ? 'bg-bg-dark-elevated border border-border-dark' : 'bg-bg-light-elevated border border-border-light']">
-    
-    <header class="flex justify-between items-center pb-4 mb-4 border-b transition-colors duration-300"
-            :class="[isDark ? 'border-border-dark' : 'border-border-light']">
-      <div class="flex items-center gap-3">
-        <h3 class="text-lg font-bold transition-colors duration-300" 
-            :class="[isDark ? 'text-text-dark-primary' : 'text-text-light-primary']">
+  <div class="flex flex-col h-full bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
+    <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+      <div class="flex items-center gap-2">
+        <h3 class="font-semibold text-gray-900 dark:text-gray-100">
           {{ title }}
         </h3>
-        <span class="px-2.5 py-1 rounded-full text-xs font-bold transition-colors duration-300" 
-              :class="statusClasses">
+        <span :class="statusBadgeClasses" class="text-white text-xs font-medium px-2 py-0.5 rounded-full">
           {{ tasks.length }}
         </span>
       </div>
-      
-      <button @click="addTask" 
-              class="p-1.5 rounded-lg transition-all duration-200 hover:scale-110"
-              :class="[isDark ? 'text-accent-primary hover:bg-bg-dark-base' : 'text-accent-dark-primary hover:bg-bg-light-hover']">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+      <button
+        @click="addTask"
+        class="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+      >
+        <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
       </button>
-    </header>
-    
-    <div class="flex-grow overflow-y-auto space-y-4">
-      
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-hide">
+      <p v-if="tasks.length === 0" class="text-sm text-gray-500 dark:text-gray-400 text-center py-8 italic">
+        No tasks in {{ statusLabel }}
+      </p>
       <TaskItem 
+        v-else
         v-for="task in tasks" 
         :key="task.id" 
         :task="task" 
-        @view="handleTaskAction('view', $event)" 
-        @update="handleTaskAction('update', $event)" 
-        @delete="handleTaskAction('delete', $event)" 
+        @view="handleTaskAction('view', task)"
+        @edit="handleTaskAction('edit', task)"
+        @delete="handleTaskAction('delete', task)"
+        @update:status="handleTaskAction('update', $event)"
       />
-      
-      <p v-if="tasks.length === 0" class="text-center py-8 text-sm"
-         :class="[isDark ? 'text-text-dark-tertiary' : 'text-text-light-tertiary']">
-        No tasks in this column. Click + to add one.
-      </p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue'; 
+import { computed } from 'vue';
 import TaskItem from './TaskItem.vue';
 
 const props = defineProps({
   title: { type: String, required: true },
-  status: { type: String, required: true },
+  status: { type: String, required: true }, 
   tasks: { type: Array, default: () => [] },
 });
 
-// Update emitted events
-const emit = defineEmits(['create', 'view', 'update', 'delete']); 
-
-// --- THEME STATE LOGIC (Retained) ---
-const isDark = ref(document.documentElement.classList.contains('dark'));
-let themeObserver = null;
-
-const checkTheme = () => {
-  isDark.value = document.documentElement.classList.contains('dark');
-};
-
-const handleThemeChange = (event) => {
-  isDark.value = event.detail.isDark;
-};
-
-onMounted(() => {
-  checkTheme();
-  
-  window.addEventListener('theme-changed', handleThemeChange);
-  
-  themeObserver = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.attributeName === 'class') {
-        checkTheme();
-      }
-    });
-  });
-  
-  themeObserver.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['class']
-  });
-  
-  onBeforeUnmount(() => {
-    window.removeEventListener('theme-changed', handleThemeChange);
-    if (themeObserver) {
-      themeObserver.disconnect();
-    }
-  });
-});
-// -------------------------------------------------
-
-// Status badge for column header (Unchanged)
-const statusClasses = computed(() => {
-  switch (props.status) {
-    case 'to-do':
-      return isDark.value 
-        ? 'bg-accent-primary text-bg-dark-base' 
-        : 'bg-accent-dark-primary text-white';
-    case 'in-progress':
-      return 'bg-yellow-500 text-gray-900';
-    case 'review':
-      return 'bg-indigo-500 text-white';
-    case 'done':
-      return 'bg-green-600 text-white';
-    default:
-      return 'bg-gray-500 text-white';
-  }
-});
+const emit = defineEmits(['create', 'view', 'edit', 'update', 'delete']);
 
 const addTask = () => {
   emit('create', props.status);
 };
 
-const handleTaskAction = (action, task) => {
-  emit(action, task);
+const handleTaskAction = (action, payload) => {
+  emit(action, payload);
 };
+
+const statusBadgeClasses = computed(() => {
+  switch (props.status) {
+    case 'to-do':
+      return 'bg-blue-500';
+    case 'in-progress':
+      return 'bg-yellow-500';
+    case 'review':
+      return 'bg-purple-500';
+    case 'done':
+      return 'bg-green-500';
+    default:
+      return 'bg-gray-500';
+  }
+});
+
+const statusLabel = computed(() => {
+  const map = { 
+    'to-do': 'To Do', 
+    'in-progress': 'In Progress', 
+    'review': 'Review', 
+    'done': 'Done',
+  };
+  return map[props.status] || 'Unknown';
+});
 </script>
+
+<style scoped>
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+</style>

@@ -5,8 +5,9 @@
       title="To Do" 
       status="to-do" 
       :tasks="filteredTasks('to-do')" 
-      @create="handleCreate"
+      @create="handleCreate"  
       @view="handleView"
+      @edit="handleEdit"
       @update="handleUpdate"
       @delete="handleDelete"
     />
@@ -17,6 +18,7 @@
       :tasks="filteredTasks('in-progress')"
       @create="handleCreate"
       @view="handleView"
+      @edit="handleEdit"
       @update="handleUpdate"
       @delete="handleDelete"
     />
@@ -27,6 +29,7 @@
       :tasks="filteredTasks('review')"
       @create="handleCreate"
       @view="handleView"
+      @edit="handleEdit"
       @update="handleUpdate"
       @delete="handleDelete"
     />
@@ -37,6 +40,7 @@
       :tasks="filteredTasks('done')" 
       @create="handleCreate"
       @view="handleView"
+      @edit="handleEdit"
       @update="handleUpdate"
       @delete="handleDelete"
     />
@@ -46,31 +50,34 @@
 
 <script setup>
 import TaskColumn from './TaskColumn.vue';
-import { computed } from 'vue';
 
 const props = defineProps({
   allTasks: { type: Array, default: () => [] },
 });
 
-const emit = defineEmits(['createTask', 'viewTask', 'updateTask', 'deleteTask']); 
+const emit = defineEmits(['create-task', 'view-task', 'edit-task', 'update-task', 'delete-task']); 
 
 const filteredTasks = (status) => {
   return props.allTasks.filter(task => task.status === status);
 };
 
 const handleCreate = (status) => {
-  emit('createTask', status);
+  emit('create-task', { status: status }); 
 };
 
-const handleView = (task) => {
-  emit('viewTask', task);
+const handleView = (task) => { 
+  emit('view-task', task); 
 };
 
-const handleUpdate = (task) => {
-  emit('updateTask', task);
+const handleEdit = (task) => {
+  emit('edit-task', task);
 };
 
-const handleDelete = (task) => {
-  emit('deleteTask', task);
+const handleUpdate = (payload) => { 
+  emit('update-task', payload); 
+};
+
+const handleDelete = (task) => { 
+  emit('delete-task', task); 
 };
 </script>
